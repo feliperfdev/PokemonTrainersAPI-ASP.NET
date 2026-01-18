@@ -1,0 +1,5 @@
+﻿@DOTNETPokemonAPI_HostAddress = https://localhost:7129
+
+GET {{DOTNETPokemonAPI_HostAddress}}/trainers
+
+###
