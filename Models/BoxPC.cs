@@ -10,5 +10,7 @@ namespace DOTNETPokemonAPI.Models
 
         [NotMapped]
         public List<Pokemon>? Pokemons { get; set; }
+
+        public Trainer? BoxTrainer { get; set; }
     }
 }

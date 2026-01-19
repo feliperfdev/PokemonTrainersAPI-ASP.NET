@@ -1,7 +1,7 @@
 ﻿using DOTNETPokemonAPI.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DOTNETPokemonAPI
+namespace DOTNETPokemonAPI.DTO
 {
     public class TrainerAllPokemonDTO
     {

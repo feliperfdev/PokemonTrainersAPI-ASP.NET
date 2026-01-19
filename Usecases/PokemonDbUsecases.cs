@@ -1,12 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DOTNETPokemonAPI.Database;
+using DOTNETPokemonAPI.DTO;
+using DOTNETPokemonAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace DOTNETPokemonAPI.Database
+namespace DOTNETPokemonAPI.Usecases
 {
     public class PokemonDbUsecases
     {
         public static async Task<IResult> GetAllTrainers(PokemonDb db)
         {
             var trainers = await db.Trainers.ToListAsync();
+
+            var trainersWithPokemon = new List<TrainerWithPokemonDTO>();
 
             var allPokemonIds = trainers
                 .Where(t => t.PokemonIds != null)
@@ -22,13 +27,20 @@ namespace DOTNETPokemonAPI.Database
             {
                 if (trainer.PokemonIds != null)
                 {
-                    trainer.Pokemons = allPokemons
+                    var dto = new TrainerWithPokemonDTO
+                    {
+                        Id = trainer.Id,
+                        BoxId = trainer.BoxPcId!.Value,
+                        Pokemons = allPokemons
                         .Where(p => trainer.PokemonIds.Contains(p.Id))
-                        .ToList();
+                        .ToList()
+                    };
+                    
+                    trainersWithPokemon.Add(dto);
                 }
             }
 
-            return Results.Ok(trainers.OrderBy((t) => t.Id));
+            return Results.Ok(trainersWithPokemon.OrderBy((t) => t.Id));
         }
 
         public static async Task<IResult> GetTrainerById(int id, PokemonDb db)
@@ -43,11 +55,16 @@ namespace DOTNETPokemonAPI.Database
                 .Where(p => allPokemonIds.Contains(p.Id))
                 .ToListAsync();
 
-            trainer.Pokemons = allPokemons
+            var dto = new TrainerWithPokemonDTO
+            {
+                Id = trainer.Id,
+                BoxId = trainer.BoxPcId!.Value,
+                Pokemons = allPokemons
                         .Where(p => trainer.PokemonIds.Contains(p.Id))
-                        .ToList();
+                        .ToList()
+            };
 
-            return Results.Ok(trainer);
+            return Results.Ok(dto);
         }
 
         public static async Task<IResult> GetTrainerBox(int id, PokemonDb db)
@@ -70,7 +87,15 @@ namespace DOTNETPokemonAPI.Database
                         .Where(p => trainerBox.PokemonIds.Contains(p.Id))
                         .ToList();
 
-            return Results.Ok(trainerBox);
+            var dto = new BoxPokemonDTO
+            {
+                Id = trainerBox.Id,
+                BoxTrainerId = trainer.Id,
+                BoxTrainerName = trainer.Name,
+                Pokemons = trainerBox.Pokemons
+            };
+
+            return Results.Ok(dto);
         }
 
         public static async Task<IResult> GetTrainerAllPokemon(int id, PokemonDb db)

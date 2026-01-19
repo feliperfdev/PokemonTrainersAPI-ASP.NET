@@ -1,0 +1,46 @@
+﻿using DOTNETPokemonAPI.Database;
+using DOTNETPokemonAPI.DTO;
+using Microsoft.EntityFrameworkCore;
+
+namespace DOTNETPokemonAPI.Usecases
+{
+    public class BoxDbUsecases
+    {
+        public static async Task<IResult> GetBox(int boxId, PokemonDb db)
+        {
+            var box = await db.BoxPCs
+                .Include(bp => bp.BoxTrainer)
+                .Where(bp => bp.Id == boxId)
+                .Select(bp => new
+                {
+                    BoxPc = bp,
+                    Trainer = bp.BoxTrainer,
+                    Pokemons = db.Pokemons
+                        .Where(p => bp.PokemonIds.Contains(p.Id))
+                        .OrderBy(p => p.Id)
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (box is null) return Results.NotFound();
+
+            var boxPc = box.BoxPc;
+
+            if (boxPc is null) return Results.NotFound();
+
+            var boxTrainer = boxPc.BoxTrainer;
+
+            if (boxTrainer is null) return Results.NotFound();
+
+            var dto = new BoxPokemonDTO
+            {
+                Id = boxPc.Id,
+                BoxTrainerId = boxTrainer.Id,
+                BoxTrainerName = boxTrainer.Name,
+                Pokemons = box.Pokemons
+            };
+
+            return Results.Ok(dto);
+        }
+    }
+}
