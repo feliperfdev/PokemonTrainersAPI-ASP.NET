@@ -7,6 +7,15 @@ namespace DOTNETPokemonAPI.Usecases
 {
     public class PokemonDbUsecases
     {
+        public static async Task<IResult> GetAllPokemon(PokemonDb db)
+        {
+            var pokemons = await db.Pokemons.ToListAsync();
+
+            if (pokemons is null) return Results.NotFound();
+
+            return Results.Ok(pokemons.OrderBy((p) => p.Id));
+        }
+
         public static async Task<IResult> GetAllTrainers(PokemonDb db)
         {
             var trainers = await db.Trainers.ToListAsync();

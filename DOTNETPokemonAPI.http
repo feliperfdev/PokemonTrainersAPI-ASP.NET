@@ -1,5 +1,17 @@
 ﻿@DOTNETPokemonAPI_HostAddress = https://localhost:7129
 
-GET {{DOTNETPokemonAPI_HostAddress}}/trainers
+@boxId=1
+PUT {{DOTNETPokemonAPI_HostAddress}}/box/{{boxId}}/move
+Content-Type: application/json
+
+{
+  "PokemonToMoveIds":[33],
+  "TrainerId":1
+}
+
+###
+
+@id=0
+GET {{DOTNETPokemonAPI_HostAddress}}/trainer/{{id}}/all
 
 ###

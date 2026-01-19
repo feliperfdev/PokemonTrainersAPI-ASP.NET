@@ -21,11 +21,13 @@ builder.Services.AddDbContext<PokemonDb>(options =>
 
 var app = builder.Build();
 
+app.MapGet("/pokemons", PokemonDbUsecases.GetAllPokemon);
 app.MapGet("/trainers", PokemonDbUsecases.GetAllTrainers);
 app.MapGet("/trainer/{id}", PokemonDbUsecases.GetTrainerById);
 app.MapGet("/trainer/{id}/box", PokemonDbUsecases.GetTrainerBox);
 app.MapGet("/trainer/{id}/all", PokemonDbUsecases.GetTrainerAllPokemon);
 
 app.MapGet("/box/{boxId}", BoxDbUsecases.GetBox);
+app.MapPut("/box/{boxId}/move", BoxDbUsecases.MovePokemonFromBoxToParty);
 
 app.Run();

@@ -43,6 +43,7 @@ DOTNETPokemonAPI/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| `GET` | `/pokemons` | Get all Pokemon registered |
 | `GET` | `/trainers` | Get all trainers with their party Pokemon |
 | `GET` | `/trainer/{id}` | Get a specific trainer by ID |
 | `GET` | `/trainer/{id}/box` | Get a trainer's PC Box Pokemon |

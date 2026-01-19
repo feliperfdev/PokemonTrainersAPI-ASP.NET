@@ -42,5 +42,39 @@ namespace DOTNETPokemonAPI.Usecases
 
             return Results.Ok(dto);
         }
+
+        public static async Task<IResult> MovePokemonFromBoxToParty(int boxId, PokemonFromBoxToMoveDTO paramDTO, PokemonDb db)
+        {
+            var trainer = await db.Trainers.FindAsync(paramDTO.TrainerId);
+
+            if (trainer is null) return Results.NotFound();
+
+            var box = await db.BoxPCs.FindAsync(boxId);
+
+            if (box is null) return Results.NotFound();
+
+            var allPokemonIds = trainer.PokemonIds.ToList();
+
+            var allPokemons = await db.Pokemons
+                .Where(p => allPokemonIds.Contains(p.Id))
+                .ToListAsync();
+
+            foreach (var pokemonId in paramDTO.PokemonToMoveIds)
+            {
+                box.PokemonIds.Remove(pokemonId);
+                box.Pokemons!.Remove(allPokemons.Where((p) => p.Id == pokemonId).Single());
+            }
+
+            db.BoxPCs.Update(box);
+
+            trainer.PokemonIds.AddRange(paramDTO.PokemonToMoveIds);
+            trainer.Pokemons.AddRange(allPokemons.Where(pokemon => paramDTO.PokemonToMoveIds.Contains(pokemon.Id)));
+
+            db.Trainers.Update(trainer);
+
+            db.SaveChanges();
+
+            return Results.Accepted();
+        }
     }
 }
