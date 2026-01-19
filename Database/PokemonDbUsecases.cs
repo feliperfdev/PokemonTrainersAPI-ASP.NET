@@ -72,5 +72,39 @@ namespace DOTNETPokemonAPI.Database
 
             return Results.Ok(trainerBox);
         }
+
+        public static async Task<IResult> GetTrainerAllPokemon(int id, PokemonDb db)
+        {
+            var trainer = await db.Trainers.FindAsync(id);
+
+            if (trainer is null) return Results.NotFound();
+
+            var trainerBox = await db.BoxPCs.FindAsync(trainer.BoxPcId);
+
+            if (trainerBox is null) return Results.NotFound();
+
+            var allPokemonIds = trainerBox.PokemonIds.Concat(trainer.PokemonIds).ToList();
+
+            var allPokemons = await db.Pokemons
+                .Where(p => allPokemonIds.Contains(p.Id))
+                .ToListAsync();
+
+            trainerBox.Pokemons = allPokemons
+                        .Where(p => trainerBox.PokemonIds.Contains(p.Id))
+                        .ToList();
+
+            trainer.Pokemons = allPokemons
+                        .Where(p => trainer.PokemonIds.Contains(p.Id))
+                        .ToList();
+
+            var dto = new TrainerAllPokemonDTO { 
+            Id = trainer.Id,
+            Name = trainer.Name,
+            };
+
+            dto.AddPokemon(partyPokemon: trainer.Pokemons, boxPokemon: trainerBox.Pokemons);
+
+            return Results.Ok(dto);
+        }
     }
 }

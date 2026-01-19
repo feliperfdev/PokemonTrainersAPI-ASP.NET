@@ -23,5 +23,6 @@ var app = builder.Build();
 app.MapGet("/trainers", PokemonDbUsecases.GetAllTrainers);
 app.MapGet("/trainer/{id}", PokemonDbUsecases.GetTrainerById);
 app.MapGet("/trainer/{id}/box", PokemonDbUsecases.GetTrainerBox);
+app.MapGet("/trainer/{id}/all", PokemonDbUsecases.GetTrainerAllPokemon);
 
 app.Run();

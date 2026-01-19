@@ -12,6 +12,9 @@ namespace DOTNETPokemonAPI.Models
         [NotMapped]
         public List<Pokemon> Pokemons { get; set; }
 
+        [NotMapped]
+        public List<Pokemon> PokemonsInBoxPc {  get; set; }
+
         public int? BoxPcId { get; set; }
     }
 }
