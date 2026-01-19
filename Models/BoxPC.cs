@@ -1,8 +1,14 @@
-﻿namespace DOTNETPokemonAPI.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace DOTNETPokemonAPI.Models
 {
     public class BoxPC
     {
-        public required int id {  get; set; }
-        public List<Pokemon>? pokemons { get; set; } = new List<Pokemon>();
+        public required int Id {  get; set; }
+
+        public required List<int> PokemonIds { get; set; }
+
+        [NotMapped]
+        public List<Pokemon>? Pokemons { get; set; }
     }
 }

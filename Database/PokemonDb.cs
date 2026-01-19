@@ -17,5 +17,7 @@ namespace DOTNETPokemonAPI.Database
 
         public DbSet<Trainer> Trainers => Set<Trainer>();
         public DbSet<Pokemon> Pokemons => Set<Pokemon>();
+
+        public DbSet<BoxPC> BoxPCs => Set<BoxPC>();
     }
 }
