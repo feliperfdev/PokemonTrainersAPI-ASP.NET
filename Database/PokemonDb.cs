@@ -1,5 +1,4 @@
-﻿using DOTNETPokemonAPI.DTO;
-using DOTNETPokemonAPI.Models;
+﻿using DOTNETPokemonAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DOTNETPokemonAPI.Database
