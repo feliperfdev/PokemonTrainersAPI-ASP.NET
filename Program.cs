@@ -19,7 +19,24 @@ Console.WriteLine($"PostgreSQL version: {conn.PostgreSqlVersion}");
 builder.Services.AddDbContext<PokemonDb>(options =>
     options.UseNpgsql(dataSource));
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
+
+app.UseCors();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
 
 app.MapGet("/pokemons", PokemonDbUsecases.GetAllPokemon);
 app.MapGet("/trainers", PokemonDbUsecases.GetAllTrainers);
@@ -28,6 +45,6 @@ app.MapGet("/trainer/{id}/box", PokemonDbUsecases.GetTrainerBox);
 app.MapGet("/trainer/{id}/all", PokemonDbUsecases.GetTrainerAllPokemon);
 
 app.MapGet("/box/{boxId}", BoxDbUsecases.GetBox);
-app.MapPut("/box/{boxId}/move", BoxDbUsecases.MovePokemonFromBoxToParty);
+app.MapPut("/box/{boxId}/move", BoxDbUsecases.MovePokemon);
 
 app.Run();

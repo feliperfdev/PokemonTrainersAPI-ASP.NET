@@ -40,9 +40,7 @@ namespace DOTNETPokemonAPI.Usecases
                     {
                         Id = trainer.Id,
                         BoxId = trainer.BoxPcId!.Value,
-                        Pokemons = allPokemons
-                        .Where(p => trainer.PokemonIds.Contains(p.Id))
-                        .ToList()
+                        Pokemons = [.. allPokemons.Where(p => trainer.PokemonIds.Contains(p.Id))]
                     };
                     
                     trainersWithPokemon.Add(dto);
@@ -68,9 +66,7 @@ namespace DOTNETPokemonAPI.Usecases
             {
                 Id = trainer.Id,
                 BoxId = trainer.BoxPcId!.Value,
-                Pokemons = allPokemons
-                        .Where(p => trainer.PokemonIds.Contains(p.Id))
-                        .ToList()
+                Pokemons = [.. allPokemons.Where(p => trainer.PokemonIds.Contains(p.Id))]
             };
 
             return Results.Ok(dto);
@@ -92,16 +88,12 @@ namespace DOTNETPokemonAPI.Usecases
                 .Where(p => allPokemonIds.Contains(p.Id))
                 .ToListAsync();
 
-            trainerBox.Pokemons = allPokemons
-                        .Where(p => trainerBox.PokemonIds.Contains(p.Id))
-                        .ToList();
-
             var dto = new BoxPokemonDTO
             {
                 Id = trainerBox.Id,
                 BoxTrainerId = trainer.Id,
                 BoxTrainerName = trainer.Name,
-                Pokemons = trainerBox.Pokemons
+                Pokemons = [.. allPokemons.Where(p => trainerBox.PokemonIds.Contains(p.Id))]
             };
 
             return Results.Ok(dto);
@@ -123,13 +115,9 @@ namespace DOTNETPokemonAPI.Usecases
                 .Where(p => allPokemonIds.Contains(p.Id))
                 .ToListAsync();
 
-            trainerBox.Pokemons = allPokemons
-                        .Where(p => trainerBox.PokemonIds.Contains(p.Id))
-                        .ToList();
+            trainerBox.Pokemons = [.. allPokemons.Where(p => trainerBox.PokemonIds.Contains(p.Id))];
 
-            trainer.Pokemons = allPokemons
-                        .Where(p => trainer.PokemonIds.Contains(p.Id))
-                        .ToList();
+            trainer.Pokemons = [.. allPokemons.Where(p => trainer.PokemonIds.Contains(p.Id))];
 
             var dto = new TrainerAllPokemonDTO { 
             Id = trainer.Id,
