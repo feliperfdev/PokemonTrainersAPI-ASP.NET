@@ -13,7 +13,7 @@ namespace DOTNETPokemonAPI.DTO
         
         public void AddPokemon(List<Pokemon> partyPokemon, List<Pokemon> boxPokemon)
         {
-            AllPokemon = AllPokemon.Concat(boxPokemon).Concat(partyPokemon).ToList();
+            AllPokemon = [..boxPokemon, ..partyPokemon];
         }
     }
 }
