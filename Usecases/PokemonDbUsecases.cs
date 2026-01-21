@@ -20,31 +20,26 @@ namespace DOTNETPokemonAPI.Usecases
         {
             var trainers = await db.Trainers.ToListAsync();
 
+            var allTrainersPokemons = await db.TrainerPokemon.ToListAsync();
+
             var trainersWithPokemon = new List<TrainerWithPokemonDTO>();
 
-            var allPokemonIds = trainers
-                .Where(t => t.PokemonIds != null)
-                .SelectMany(t => t.PokemonIds)
-                .Distinct()
-                .ToList();
-
-            var allPokemons = await db.Pokemons
-                .Where(p => allPokemonIds.Contains(p.Id))
-                .ToListAsync();
+            var allPokemons = await db.Pokemons.ToListAsync();
 
             foreach (var trainer in trainers)
             {
-                if (trainer.PokemonIds != null)
+                var trainerPokemons = allTrainersPokemons
+                    .Where(p => p.TrainerId == trainer.Id && p.Location == "party")
+                    .Select(p => p.PokemonId); ;
+
+                var dto = new TrainerWithPokemonDTO
                 {
-                    var dto = new TrainerWithPokemonDTO
-                    {
-                        Id = trainer.Id,
-                        BoxId = trainer.BoxPcId!.Value,
-                        Pokemons = [.. allPokemons.Where(p => trainer.PokemonIds.Contains(p.Id))]
-                    };
-                    
-                    trainersWithPokemon.Add(dto);
-                }
+                    Id = trainer.Id,
+                    BoxId = trainer.BoxPcId!.Value,
+                    Pokemons = [..allPokemons.Where(p => trainerPokemons.Contains(p.Id))]
+                };
+
+                trainersWithPokemon.Add(dto);
             }
 
             return Results.Ok(trainersWithPokemon.OrderBy((t) => t.Id));
@@ -56,17 +51,20 @@ namespace DOTNETPokemonAPI.Usecases
 
             if (trainer is null) return Results.NotFound();
 
-            var allPokemonIds = trainer.PokemonIds.ToList();
-
-            var allPokemons = await db.Pokemons
-                .Where(p => allPokemonIds.Contains(p.Id))
+            var allTrainersPokemons = await db.TrainerPokemon
+                .Where(t => t.TrainerId == id && t.Location == "party")
                 .ToListAsync();
+
+            var allPokemons = await db.Pokemons.ToListAsync();
+
+            var trainerPokemonIds = allTrainersPokemons
+                    .Select(p => p.PokemonId);
 
             var dto = new TrainerWithPokemonDTO
             {
                 Id = trainer.Id,
                 BoxId = trainer.BoxPcId!.Value,
-                Pokemons = [.. allPokemons.Where(p => trainer.PokemonIds.Contains(p.Id))]
+                Pokemons = [.. allPokemons.Where(p => trainerPokemonIds.Contains(p.Id))]
             };
 
             return Results.Ok(dto);
@@ -78,22 +76,20 @@ namespace DOTNETPokemonAPI.Usecases
 
             if (trainer is null) return Results.NotFound();
 
-            var trainerBox = await db.BoxPCs.FindAsync(trainer.BoxPcId);
-
-            if (trainerBox is null) return Results.NotFound();
-
-            var allPokemonIds = trainerBox.PokemonIds.ToList();
-
-            var allPokemons = await db.Pokemons
-                .Where(p => allPokemonIds.Contains(p.Id))
+            var allTrainersPokemons = await db.TrainerPokemon
+                .Where(t => t.TrainerId == id && t.Location == "box")
                 .ToListAsync();
 
-            var dto = new BoxPokemonDTO
+            var allPokemons = await db.Pokemons.ToListAsync();
+
+            var trainerPokemonIds = allTrainersPokemons
+                    .Select(p => p.PokemonId); ;
+
+            var dto = new TrainerWithPokemonDTO
             {
-                Id = trainerBox.Id,
-                BoxTrainerId = trainer.Id,
-                BoxTrainerName = trainer.Name,
-                Pokemons = [.. allPokemons.Where(p => trainerBox.PokemonIds.Contains(p.Id))]
+                Id = trainer.Id,
+                BoxId = trainer.BoxPcId!.Value,
+                Pokemons = [.. allPokemons.Where(p => trainerPokemonIds.Contains(p.Id))]
             };
 
             return Results.Ok(dto);
@@ -105,26 +101,21 @@ namespace DOTNETPokemonAPI.Usecases
 
             if (trainer is null) return Results.NotFound();
 
-            var trainerBox = await db.BoxPCs.FindAsync(trainer.BoxPcId);
-
-            if (trainerBox is null) return Results.NotFound();
-
-            var allPokemonIds = trainerBox.PokemonIds.Concat(trainer.PokemonIds).ToList();
-
-            var allPokemons = await db.Pokemons
-                .Where(p => allPokemonIds.Contains(p.Id))
+            var allTrainersPokemons = await db.TrainerPokemon
+                .Where(t => t.TrainerId == id)
                 .ToListAsync();
 
-            trainerBox.Pokemons = [.. allPokemons.Where(p => trainerBox.PokemonIds.Contains(p.Id))];
+            var allPokemons = await db.Pokemons.ToListAsync();
 
-            trainer.Pokemons = [.. allPokemons.Where(p => trainer.PokemonIds.Contains(p.Id))];
+            var trainerPokemonIds = allTrainersPokemons
+                    .Select(p => p.PokemonId); ;
 
-            var dto = new TrainerAllPokemonDTO { 
-            Id = trainer.Id,
-            Name = trainer.Name,
+            var dto = new TrainerWithPokemonDTO
+            {
+                Id = trainer.Id,
+                BoxId = trainer.BoxPcId!.Value,
+                Pokemons = [.. allPokemons.Where(p => trainerPokemonIds.Contains(p.Id))]
             };
-
-            dto.AddPokemon(partyPokemon: trainer.Pokemons, boxPokemon: trainerBox.Pokemons);
 
             return Results.Ok(dto);
         }

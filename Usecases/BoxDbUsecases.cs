@@ -20,38 +20,35 @@ namespace DOTNETPokemonAPI.Usecases
                 .Select(bp => new
                 {
                     BoxPc = bp,
-                    Trainer = bp.BoxTrainer,
-                    Pokemons = db.Pokemons
-                        .Where(p => bp.PokemonIds.Contains(p.Id))
-                        .OrderBy(p => p.Id)
-                        .ToList()
+                    Trainer = bp.BoxTrainer
                 })
                 .FirstOrDefaultAsync();
 
             if (box is null) return Results.NotFound();
 
-            var boxPc = box.BoxPc;
+            var allTrainersPokemons = await db.TrainerPokemon
+                .Where(t => t.TrainerId == box.Trainer!.Id && t.Location == "box")
+                .ToListAsync();
 
-            if (boxPc is null) return Results.NotFound();
+            var allPokemons = await db.Pokemons.ToListAsync();
 
-            var boxTrainer = boxPc.BoxTrainer;
-
-            if (boxTrainer is null) return Results.NotFound();
+            var trainerPokemonIds = allTrainersPokemons
+                    .Select(p => p.PokemonId);
 
             var dto = new BoxPokemonDTO
             {
-                Id = boxPc.Id,
-                BoxTrainerId = boxTrainer.Id,
-                BoxTrainerName = boxTrainer.Name,
-                Pokemons = box.Pokemons
+                Id = boxId,
+                BoxTrainerId = box.Trainer!.Id,
+                BoxTrainerName = box.Trainer!.Name,
+                Pokemons = [..allPokemons.Where(p => trainerPokemonIds.Contains(p.Id))]
             };
 
             return Results.Ok(dto);
         }
 
         public static async Task<IResult> MovePokemon(
-            int boxId, 
-            [FromBody] PokemonFromBoxToMoveDTO paramDTO, 
+            int boxId,
+            [FromBody] PokemonFromBoxToMoveDTO paramDTO,
             PokemonDb db)
         {
             var trainer = await db.Trainers.FindAsync(paramDTO.TrainerId);
@@ -82,33 +79,46 @@ namespace DOTNETPokemonAPI.Usecases
                 _ => Results.BadRequest(new { Message = "Invalid move type!" })
             };
         }
-        
+
         private static async Task<IResult> MoveFromBoxToParty(
             BoxPC box, Trainer trainer,
             PokemonFromBoxToMoveDTO paramDTO,
             PokemonDb db
             )
         {
-            var pokemonsInBox = box.PokemonIds.Intersect(paramDTO.PokemonToMoveIds).ToList();
-            if (pokemonsInBox.Count == 0)
+            var allTrainerPokemons = await db.TrainerPokemon.ToListAsync();
+
+            var pokemonsInBoxBeingMoved = allTrainerPokemons
+                .Where(p => p.TrainerId == trainer.Id && p.Location == "box")
+                .Select(p => p.PokemonId)
+                .Intersect(paramDTO.PokemonToMoveIds).ToList();
+            if (pokemonsInBoxBeingMoved.Count == 0)
                 return Results.BadRequest(new { Message = "None of the specified Pokémon are in the box!" });
 
-            var currentPartySize = trainer.PokemonIds.Count;
-            if (currentPartySize + pokemonsInBox.Count > PARTYLIMIT)
+            var currentPartySize = allTrainerPokemons
+                .Where(p => p.TrainerId == trainer.Id && p.Location == "party")
+                .Select(p => p.PokemonId)
+                .Intersect(paramDTO.PokemonToMoveIds).ToList().Count;
+            if (currentPartySize + pokemonsInBoxBeingMoved.Count > PARTYLIMIT)
                 return Results.BadRequest(new
                 {
-                    Message = $"Cannot move {pokemonsInBox.Count} Pokémon to party. Party limit is {PARTYLIMIT}. Current party size: {currentPartySize}"
+                    Message = $"Cannot move {pokemonsInBoxBeingMoved.Count} Pokémon to party. Party limit is {PARTYLIMIT}. Current party size: {currentPartySize}"
                 });
 
-            box.PokemonIds = [.. box.PokemonIds.Except(pokemonsInBox)];
-            trainer.PokemonIds = [.. trainer.PokemonIds.Concat(pokemonsInBox)];
+            var beingMoved = allTrainerPokemons
+                .Where(p => paramDTO.PokemonToMoveIds.Contains(p.PokemonId))
+                .Select(p =>
+                {
+                    p.Location = "party";
 
-            db.BoxPCs.Update(box);
-            db.Trainers.Update(trainer);
+                    return p;
+                }).ToList();
+
+            db.TrainerPokemon.UpdateRange(beingMoved);
             await db.SaveChangesAsync();
 
             var transferredPokemons = await db.Pokemons
-                .Where(p => pokemonsInBox.Contains(p.Id))
+                .Where(p => pokemonsInBoxBeingMoved.Contains(p.Id))
                 .ToListAsync();
 
             return Results.Ok(
@@ -128,24 +138,34 @@ namespace DOTNETPokemonAPI.Usecases
             PokemonDb db
             )
         {
-            var pokemonsInParty = trainer.PokemonIds.Intersect(paramDTO.PokemonToMoveIds).ToList();
-            if (pokemonsInParty.Count == 0)
-                return Results.BadRequest(new { Message = "None of the specified Pokémon are in the party!" });
+            var allTrainerPokemons = await db.TrainerPokemon.ToListAsync();
 
-            var remainingPartySize = trainer.PokemonIds.Count - pokemonsInParty.Count;
+            var pokemonsInParty = allTrainerPokemons
+                .Where(p => p.TrainerId == trainer.Id && p.Location == "party")
+                .Select(p => p.PokemonId).ToList();
+
+            var pokemonsInPartyBeingMoved = pokemonsInParty
+                .Intersect(paramDTO.PokemonToMoveIds).ToList();
+            if (pokemonsInPartyBeingMoved.Count == 0)
+                return Results.BadRequest(new { Message = "None of the specified Pokémon are in the box!" });
+
+            var remainingPartySize = pokemonsInParty.Count - pokemonsInPartyBeingMoved.Count;
             if (remainingPartySize < 1)
                 return Results.BadRequest(new { Message = "Cannot move all Pokémon from party. At least 1 must remain!" });
 
-            trainer.PokemonIds = [.. trainer.PokemonIds.Except(pokemonsInParty)];
+            var beingMoved = allTrainerPokemons
+                .Where(p => paramDTO.PokemonToMoveIds.Contains(p.PokemonId))
+                .Select(p =>
+                {
+                    p.Location = "box";
 
-            box.PokemonIds = [.. box.PokemonIds.Concat(pokemonsInParty)];
+                    return p;
+                }).ToList();
 
-            db.Trainers.Update(trainer);
-            db.BoxPCs.Update(box);
             await db.SaveChangesAsync();
 
             var transferredPokemons = await db.Pokemons
-                .Where(p => pokemonsInParty.Contains(p.Id))
+                .Where(p => pokemonsInPartyBeingMoved.Contains(p.Id))
                 .ToListAsync();
 
             return Results.Ok(

@@ -8,6 +8,9 @@ namespace DOTNETPokemonAPI.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<TrainerPokemon>()
+            .Property(p => p.CapturedAt)
+            .HasColumnType("timestamp without time zone");
         }
 
         public PokemonDb(DbContextOptions<PokemonDb> options) : base(options)
@@ -18,5 +21,7 @@ namespace DOTNETPokemonAPI.Database
         public DbSet<Pokemon> Pokemons => Set<Pokemon>();
 
         public DbSet<BoxPC> BoxPCs => Set<BoxPC>();
+
+        public DbSet<TrainerPokemon> TrainerPokemon => Set<TrainerPokemon>();
     }
 }
