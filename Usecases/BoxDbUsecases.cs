@@ -40,7 +40,13 @@ namespace DOTNETPokemonAPI.Usecases
                 Id = boxId,
                 BoxTrainerId = box.Trainer!.Id,
                 BoxTrainerName = box.Trainer!.Name,
-                Pokemons = [..allPokemons.Where(p => trainerPokemonIds.Contains(p.Id))]
+                Pokemons = [.. allTrainersPokemons.Select(p => {
+                    var pokemon = allPokemons.Where(pkmn => trainerPokemonIds.Contains(p.PokemonId)).First();
+
+                    p.Name = pokemon.Name;
+
+                    return p;
+                })]
             };
 
             return Results.Ok(dto);

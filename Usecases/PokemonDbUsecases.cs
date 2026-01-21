@@ -36,7 +36,14 @@ namespace DOTNETPokemonAPI.Usecases
                 {
                     Id = trainer.Id,
                     BoxId = trainer.BoxPcId!.Value,
-                    Pokemons = [..allPokemons.Where(p => trainerPokemons.Contains(p.Id))]
+                    Pokemons = [.. allTrainersPokemons.Select(p => {
+                    var pokemon = allPokemons.Where(pkmn => 
+                    allPokemons.Select(p => p.Id).Contains(p.PokemonId)).First();
+
+                    p.Name = pokemon.Name;
+
+                    return p;
+                })]
                 };
 
                 trainersWithPokemon.Add(dto);
@@ -64,7 +71,13 @@ namespace DOTNETPokemonAPI.Usecases
             {
                 Id = trainer.Id,
                 BoxId = trainer.BoxPcId!.Value,
-                Pokemons = [.. allPokemons.Where(p => trainerPokemonIds.Contains(p.Id))]
+                Pokemons = [.. allTrainersPokemons.Select(p => {
+                    var pokemon = allPokemons.Where(pkmn => trainerPokemonIds.Contains(p.PokemonId)).First();
+
+                    p.Name = pokemon.Name;
+
+                    return p;
+                })]
             };
 
             return Results.Ok(dto);
@@ -89,7 +102,13 @@ namespace DOTNETPokemonAPI.Usecases
             {
                 Id = trainer.Id,
                 BoxId = trainer.BoxPcId!.Value,
-                Pokemons = [.. allPokemons.Where(p => trainerPokemonIds.Contains(p.Id))]
+                Pokemons = [.. allTrainersPokemons.Select(p => {
+                    var pokemon = allPokemons.Where(pkmn => trainerPokemonIds.Contains(p.PokemonId)).First();
+
+                    p.Name = pokemon.Name;
+
+                    return p;
+                })]
             };
 
             return Results.Ok(dto);
@@ -114,7 +133,13 @@ namespace DOTNETPokemonAPI.Usecases
             {
                 Id = trainer.Id,
                 BoxId = trainer.BoxPcId!.Value,
-                Pokemons = [.. allPokemons.Where(p => trainerPokemonIds.Contains(p.Id))]
+                Pokemons = [.. allTrainersPokemons.Select(p => {
+                    var pokemon = allPokemons.Where(pkmn => trainerPokemonIds.Contains(p.PokemonId)).First();
+
+                    p.Name = pokemon.Name;
+
+                    return p;
+                })]
             };
 
             return Results.Ok(dto);

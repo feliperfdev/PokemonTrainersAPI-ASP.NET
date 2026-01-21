@@ -10,6 +10,6 @@ namespace DOTNETPokemonAPI.DTO
         public required int BoxId { get; set; }
 
         [NotMapped]
-        public List<Pokemon>? Pokemons { get; set; }
+        public List<TrainerPokemon>? Pokemons { get; set; }
     }
 }

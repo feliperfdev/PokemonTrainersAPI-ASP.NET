@@ -10,7 +10,7 @@ namespace DOTNETPokemonAPI.DTO
 
         public required String BoxTrainerName { get; set; }
 
-        public List<Pokemon>? Pokemons { get; set; }
+        public List<TrainerPokemon>? Pokemons { get; set; }
 
     }
 }
